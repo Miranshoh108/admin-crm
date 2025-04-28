@@ -27,7 +27,7 @@ export default function ProfilePage() {
                 last_name: user.last_name || "",
                 email: user.email || "",
                 image: user.image || "/placeholder-avatar.jpg",
-                address: user.address || "", // agar address cookie’da bo‘lsa
+                address: user.address || "", 
             })
         }
     }, [])

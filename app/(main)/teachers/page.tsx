@@ -1,5 +1,5 @@
 const Teachers = () => {
-    return <div>Teachers</div>
+    return <div>Oqituvchilar</div>
 }
 
 export default Teachers

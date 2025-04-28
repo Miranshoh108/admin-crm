@@ -1,5 +1,5 @@
 const Groups = () => {
-    return <div>Groups</div>
+    return <div>Gruxlarr</div>
 }
 
 export default Groups

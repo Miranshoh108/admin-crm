@@ -1,30 +1,34 @@
-import {api} from "@/request"
-import {dehydrate, HydrationBoundary, QueryClient} from "@tanstack/react-query"
-import AdminTable from "@/components/admin-table"
+import { api } from "@/request";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import AdminTable from "@/components/admin-table";
 
 const Admins = async () => {
-    const queryClient = new QueryClient()
+  const queryClient = new QueryClient();
 
-    await queryClient.prefetchQuery({
-        queryKey: ["admins"],
-        queryFn: async () => {
-            const res = await api.get("/api/staff/all-admins")
-            return res.data.data
-        },
-    })
+  await queryClient.prefetchQuery({
+    queryKey: ["admins"],
+    queryFn: async () => {
+      const res = await api.get("/api/staff/all-admins");
+      return res.data.data;
+    },
+  });
 
-    const dehydratedState = dehydrate(queryClient)
+  const dehydratedState = dehydrate(queryClient);
 
-    return (
-        <HydrationBoundary state={dehydratedState}>
-            <div className="p-4 md:p-8 space-y-6">
-                <div className="overflow-hidden">
-                    <h2 className="mb-3 font-bold text-xl">Adminlar</h2>
-                    <AdminTable />
-                </div>
-            </div>
-        </HydrationBoundary>
-    )
-}
+  return (
+    <HydrationBoundary state={dehydratedState}>
+      <div className="p-4 md:p-8 space-y-6">
+        <div className="overflow-hidden">
+          <h2 className="mb-3 font-bold text-xl">Adminlar</h2>
+          <AdminTable />
+        </div>
+      </div>
+    </HydrationBoundary>
+  );
+};
 
-export default Admins
+export default Admins;

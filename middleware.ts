@@ -1,23 +1,14 @@
-import {NextResponse} from "next/server"
-import type {NextRequest} from "next/server"
+import { NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
-    const token = request.cookies.get("token")?.value
-
-    const url = request.nextUrl
-    const path = url.pathname
-
-    if (token && path === "/login") {
-        return NextResponse.redirect(new URL("/", request.url))
-    }
-
-    if (!token && path !== "/login") {
-        return NextResponse.redirect(new URL("/login", request.url))
-    }
-
-    return NextResponse.next()
-}
+export const middleware = (request: NextRequest) => {
+  const token = request.cookies.get("token");
+  if (token) {
+    return NextResponse.next();
+  }
+  const loginUrl = new URL("/login", request.url);
+  return NextResponse.redirect(loginUrl);
+};
 
 export const config = {
-    matcher: ["/((?!_next/static|_next/image|favicon.ico|api|.*\\..*).*)"],
-}
+  matcher: "/((?!api|_next/static|_next/image|favicon.ico|login|register).*)",
+};

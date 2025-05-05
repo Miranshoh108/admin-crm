@@ -2,8 +2,12 @@ import { notificationApi } from "@/shared/generics/notification";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import Cookie from "js-cookie";
-import { api } from "../index";
-import { AddType, EditProfileType, TatilType, User } from "@/@types";
+import { Myaxios } from "../axios";
+import { TatilType, User } from "@/types";
+import { AddType } from "@/components/admins-table/admin-add";
+import { EditProfileType } from "@/components/profile-update";
+import { AddTeacherType } from "@/components/teachers-table/teacher-add";
+import { AddGroupType } from "@/components/groups/group_add";
 const notify = notificationApi();
 export const useLoginMutation = () => {
   return useMutation({
@@ -15,9 +19,8 @@ export const useLoginMutation = () => {
         data: data,
       }),
     onSuccess(res) {
-      localStorage.setItem("sadad", JSON.stringify(res));
-      Cookie.set("token", res.data.data.token);
-      Cookie.set("user", JSON.stringify(res.data.data));
+      Cookie.set("token", res.data.data.token, { expires: 1 / 24 });
+      Cookie.set("user", JSON.stringify(res.data.data), { expires: 1 / 24 });
       notify("login");
     },
     onError() {
@@ -43,7 +46,7 @@ export const useEditMutation = () => {
     mutationKey: ["edit"],
     mutationFn: (data: object) => {
       editCases(data);
-      return api.post("/api/staff/edited-admin", data);
+      return Myaxios.post("/api/staff/edited-admin", data);
     },
   });
 };
@@ -74,7 +77,7 @@ export const useAddAdminMutaion = () => {
     mutationKey: ["addFn"],
     mutationFn: (data: AddType) => {
       AddAdminCas(data);
-      return api.post("/api/staff/create-admin", data);
+      return Myaxios.post("/api/staff/create-admin", data);
     },
     onSuccess(data) {
       notify("add");
@@ -87,7 +90,7 @@ export const useEditProfileMutaion = () => {
   return useMutation({
     mutationKey: ["editProfile"],
     mutationFn: (data: EditProfileType) => {
-      return api.post("/api/auth/edit-profile", data);
+      return Myaxios.post("/api/auth/edit-profile", data);
     },
     onSuccess() {
       notify("edit");
@@ -112,10 +115,57 @@ export const useTatildaMutaion = () => {
     mutationKey: ["tatil"],
     mutationFn: (data: TatilType) => {
       tatil(data);
-      return api.post("/api/staff/leave-staff", data);
+      return Myaxios.post("/api/staff/leave-staff", data);
     },
     onSuccess() {
       notify("chiq");
+    },
+  });
+};
+
+export const AddTaecherCase = () => {
+  const queryClient = useQueryClient();
+  return (data: any) => {
+    return queryClient.setQueryData(["teacher"], (old: User[]) => {
+      return [...old, { ...data }];
+    });
+  };
+};
+export const useAddTeacherMutaion = () => {
+  const AddTeacherCas = AddTaecherCase();
+  return useMutation({
+    mutationKey: ["teacher"],
+    mutationFn: async (data: AddTeacherType) => {
+      AddTeacherCas(data);
+      return Myaxios.post("/api/teacher/create-teacher", data).then((res) =>
+        console.log(res)
+      );
+    },
+    onSuccess(data) {
+      notify("addTeacher");
+      console.log(data);
+    },
+  });
+};
+export const AddGroupCase = () => {
+  const queryClient = useQueryClient();
+  return (data: any) => {
+    return queryClient.setQueryData(["groups"], (old: User[]) => {
+      return [...old, { ...data }];
+    });
+  };
+};
+export const useAddGroupMutation = () => {
+  const AddGroupCas = AddGroupCase();
+  return useMutation({
+    mutationKey: ["groups"],
+    mutationFn: async (data: AddGroupType) => {
+      AddGroupCas(data);
+      return Myaxios.post("/api/group/create-group", data);
+    },
+    onSuccess(data) {
+      notify("addGroup");
+      console.log(data);
     },
   });
 };

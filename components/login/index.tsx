@@ -51,7 +51,7 @@ const LoginComponents = () => {
       </div>
       <div className="backdrop-blur bg-white/5 p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/20">
         <h2 className="text-3xl font-semibold text-foreground text-center mb-4">
-          Xush kelibsiz 👋
+          ADMIN CRM
         </h2>
         <p className="text-foreground text-sm text-center mb-6">
           Hisobingizga kirish uchun email va parolni kiriting

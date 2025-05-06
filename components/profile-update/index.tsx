@@ -101,8 +101,8 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
         }}
         size="sm"
       >
-        Parol<span className="max-[366px]:hidden ">ni</span>
-        <span className="max-[366px]:hidden ">O&apos;zgartirish</span>
+     
+        <span className="max-[366px]:hidden "> O'zgartirish</span>
       </Button>
       <Button
         onClick={() => {
@@ -119,7 +119,7 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
         }}
         size="sm"
       >
-        O&apos;zgartirish
+       Taxrirlash
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

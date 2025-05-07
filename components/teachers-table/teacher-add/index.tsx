@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 const formSchema = z.object({
   email: z.string().email("To‘g‘ri email kiriting").min(5),
   last_name: z.string().min(5),
@@ -40,6 +41,7 @@ const formSchema = z.object({
     .startsWith("+998", { message: "Iltimos O'zbek nomeridan kiring" }),
   field: z.string(),
 });
+
 export interface AddTeacherType {
   first_name: string;
   last_name: string;
@@ -48,6 +50,7 @@ export interface AddTeacherType {
   password: string;
   field: string;
 }
+
 const Teacher_tools = () => {
   const { mutate } = useAddTeacherMutaion();
   const [open, setOpen] = useState(false);
@@ -62,6 +65,7 @@ const Teacher_tools = () => {
       field: "",
     },
   });
+
   const addAdmin = (values: z.infer<typeof formSchema>) => {
     mutate(values, {
       onSuccess() {
@@ -69,82 +73,101 @@ const Teacher_tools = () => {
         form.reset();
       },
     });
-    // Myaxios.post("/api/teacher/create-teacher", values).then((res) =>
-    //   console.log(res)
-    // );
   };
-  // "Frontend dasturlash", "Backend dasturlash", "Rus tili", "Ingliz tili",
+
   return (
     <div className="flex items-center gap-4">
       <Button
         onClick={() => setOpen(!open)}
-        className="mb-4 flex items-center justify-center "
-        size="sm"
+        className=" px-5 py-2 rounded-full flex items-center gap-2"
       >
-        <Plus />
-        <p className="max-[620px]:hidden">Ustoz Qo&apos;shish</p>
+        <Plus className="size-4" />
+        <span className="max-[620px]:hidden text-sm">Ustoz Qo‘shish</span>
       </Button>
+
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-xl  shadow-2xl border border-gray-200">
           <DialogHeader>
-            <DialogTitle>Ustoz Qo&apos;shish</DialogTitle>
+            <DialogTitle className="text-center text-lg font-bold ">
+              🧑‍🏫 Yangi Ustozni Qo‘shish
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(addAdmin)}
-              className="grid gap-4 py-4"
+              className="grid gap-5 py-2"
             >
-              <FormField
-                control={form.control}
-                name="first_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground">
-                      First Name
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="First name" {...field} />
-                    </FormControl>
-                    <FormMessage className="text-red-500" />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="last_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground">Last Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Last name" {...field} />
-                    </FormControl>
-                    <FormMessage className="text-red-500" />
-                  </FormItem>
-                )}
-              />
+              {/* 2 ustunli layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="first_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ism</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="rounded-xl "
+                          placeholder="Ism"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="last_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Familiya</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="rounded-xl"
+                          placeholder="Familiya"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">Email</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="you@example.com" {...field} />
+                      <Input
+                        type="email"
+                        className="rounded-xl border-gray-300 focus:border-purple-500"
+                        placeholder="you@example.com"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">Phone</FormLabel>
+                    <FormLabel>Telefon raqam</FormLabel>
                     <FormControl>
-                      <Input placeholder="+998 123 45 67" {...field} />
+                      <Input
+                        className="rounded-xl border-gray-300 focus:border-purple-500"
+                        placeholder="+998901234567"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -154,30 +177,28 @@ const Teacher_tools = () => {
                 name="field"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">
-                      Ustoz turi
-                    </FormLabel>
+                    <FormLabel>Yo‘nalish</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Ustoz yo'nalishini tanlang" />
+                        <SelectTrigger className="rounded-xl border-gray-300 focus:border-purple-500">
+                          <SelectValue placeholder="Yo‘nalishni tanlang" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Frontend dasturlash">
-                          Frontend dasturlash
+                          Frontend
                         </SelectItem>
                         <SelectItem value="Backend dasturlash">
-                          Backend dasturlash
+                          Backend
                         </SelectItem>
                         <SelectItem value="Rus tili">Rus tili</SelectItem>
                         <SelectItem value="Ingliz tili">Ingliz tili</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -187,16 +208,27 @@ const Teacher_tools = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">Password</FormLabel>
+                    <FormLabel>Parol</FormLabel>
                     <FormControl>
-                      <Input placeholder="*******" {...field} />
+                      <Input
+                        type="password"
+                        className="rounded-xl border-gray-300 focus:border-purple-500"
+                        placeholder="********"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
-              <DialogFooter>
-                <Button type="submit">Save changes</Button>
+
+              <DialogFooter className="mt-2">
+                <Button
+                  type="submit"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-full"
+                >
+                  Saqlash
+                </Button>
               </DialogFooter>
             </form>
           </Form>

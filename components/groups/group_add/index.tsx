@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAddGroupMutation } from "@/request/mutation";
+
 const formSchema = z.object({
   name: z
     .string()
@@ -43,15 +44,18 @@ const formSchema = z.object({
   teacher: z.string(),
   started_group: z.string(),
 });
+
 export interface AddGroupType {
   name: string;
   teacher: string;
   started_group: string;
 }
+
 interface teacherIdType {
   name: string;
   id: string;
 }
+
 const Group_add_tool = () => {
   const { mutate } = useAddGroupMutation();
   const [open, setOpen] = useState(false);
@@ -61,6 +65,7 @@ const Group_add_tool = () => {
     id: "",
   });
   const [searchValue, setSearchValue] = useState<string>("");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,10 +82,7 @@ const Group_add_tool = () => {
         onSuccess() {
           setOpen(false);
           form.reset();
-          setTeacherId({
-            name: "",
-            id: "",
-          });
+          setTeacherId({ name: "", id: "" });
           setSearchValue("");
         },
       }
@@ -95,36 +97,41 @@ const Group_add_tool = () => {
       Myaxios.get("/api/group/search-teacher", { params: { name: debounce } }),
     enabled: debounce.trim() !== "",
   });
+
   useEffect(() => {
     if (debounce.trim() !== "") {
       refetch();
     }
-  }, [debounce,refetch]);
-  console.log(teacherId);
+  }, [debounce, refetch]);
 
   return (
     <div className="flex items-center gap-4">
       <Button
         onClick={() => setOpen(!open)}
-        className="mb-4 flex items-center justify-center "
+        className="mb-4 flex items-center justify-center text-xs tracking-wide px-3 py-2 border border-dashed border-[#ffffff22] rounded-md shadow-inner backdrop-blur-sm"
         size="sm"
       >
-        <Plus />
-        <p className="max-[620px]:hidden">Guruh Qo&apos;shish</p>
+        <Plus className="w-4 h-4 mr-1" />
+        <p className="max-[620px]:hidden">Guruh Qo'shish</p>
       </Button>
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className={`min-w-[600px] ${data && "min-h-[400px] !pb-20"} ${
-            teacherId.id && "min-h-[200px] !pb-0"
-          } ${!data?.data?.data?.length && " !pb-0"} `}
+          className={`min-w-[600px] border border-[#333] rounded-2xl shadow-md shadow-black/40 text-sm tracking-wide ${
+            data && "min-h-[400px] !pb-20"
+          } ${teacherId.id && "min-h-[200px] !pb-0"} ${
+            !data?.data?.data?.length && " !pb-0"
+          }`}
         >
           <DialogHeader>
-            <DialogTitle>Tahrirlash</DialogTitle>
+            <DialogTitle className="text-center font-semibold text-lg">
+              Guruh qo'shish
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(addAdmin)}
-              className="grid gap-5 py-4 items-start "
+              className="grid gap-6 py-4 items-start px-2"
             >
               <FormField
                 control={form.control}
@@ -135,7 +142,11 @@ const Group_add_tool = () => {
                       Guruh nomi
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Frontend dasturlash N1" {...field} />
+                      <Input
+                        placeholder="Frontend dasturlash N1"
+                        {...field}
+                        className="rounded-lg px-4 py-2 border border-[#444] text-sm"
+                      />
                     </FormControl>
                     <FormMessage className="text-red-500" />
                   </FormItem>
@@ -145,14 +156,14 @@ const Group_add_tool = () => {
                 control={form.control}
                 name="teacher"
                 render={({ field }) => (
-                  <FormItem className="relative ">
+                  <FormItem className="relative">
                     <FormLabel className="text-foreground">Ustoz</FormLabel>
                     <FormControl>
                       <div>
                         {teacherId.id ? (
                           <div className="flex items-center justify-between">
                             <Input
-                              className="w-[93%]"
+                              className="w-[93%] rounded-lg px-4 py-2 border border-[#444]"
                               readOnly
                               value={teacherId.name}
                             />
@@ -167,16 +178,13 @@ const Group_add_tool = () => {
                               value={searchValue}
                               placeholder="Davron"
                               onChange={(e) => setSearchValue(e.target.value)}
+                              className="rounded-lg px-4 py-2 border border-[#444] text-sm"
                             />
                             {data?.data?.data?.length && (
-                              <div
-                                className={`absolute  overflow-y-auto h-[200px] top-17 rounded-xl p-2 flex flex-col gap-3  border border-accent-foreground/40 bg-[#161514] w-full  ${
-                                  !data?.data?.data?.length && "!h-[140px] !pb-0"
-                                }  `}
-                              >
+                              <div className="absolute overflow-y-auto h-[200px] top-17 rounded-xl p-2 flex flex-col gap-2 border border-[#444] text-xs text-muted-foreground w-full bg-[#111]">
                                 <Table>
                                   <TableHeader>
-                                    <TableRow className="sticky top-0 bg-[#161514] ">
+                                    <TableRow className="sticky top-0">
                                       <TableHead className="w-[30px]">
                                         No
                                       </TableHead>
@@ -220,7 +228,7 @@ const Group_add_tool = () => {
                                                 }
                                                 className="pr-3"
                                               >
-                                                <Info />
+                                                <Info className="w-4 h-4" />
                                               </TableCell>
                                             </TableRow>
                                           )
@@ -229,12 +237,6 @@ const Group_add_tool = () => {
                                   </TableBody>
                                 </Table>
                               </div>
-                              // ) : (
-                              //   <div className="flex items-center justify-center  bg-[#161514] rounded-lg p-3 mt-3 !h-full !w-full ">
-                              //     <p className="text-lg text-center">
-                              //       Ustoz topilmadi!
-                              //     </p>
-                              //   </div>
                             )}
                           </div>
                         )}
@@ -249,16 +251,27 @@ const Group_add_tool = () => {
                 name="started_group"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">Email</FormLabel>
+                    <FormLabel className="text-foreground">
+                      Boshlanish vaqti
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="2025-05-15" {...field} />
+                      <Input
+                        placeholder="2025-05-15"
+                        {...field}
+                        className="rounded-lg px-4 py-2 border border-[#444] text-sm"
+                      />
                     </FormControl>
                     <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
               <DialogFooter>
-                <Button type="submit">Save changes</Button>
+                <Button
+                  type="submit"
+                  className="w-full rounded-lg border border-[#555] px-4 py-2 shadow-inner text-sm"
+                >
+                  Saqlash
+                </Button>
               </DialogFooter>
             </form>
           </Form>

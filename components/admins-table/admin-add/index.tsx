@@ -77,76 +77,84 @@ const Admin_tools = () => {
     <div className="flex items-center gap-4">
       <Button
         onClick={() => setOpen(!open)}
-        className="mb-4 flex items-center justify-center "
+        className="mb-4 flex items-center justify-center gap-2 "
         size="sm"
       >
-        <Plus  />
-        <p className="max-[620px]:hidden">Admin Qo&apos;shish</p>
+        <Plus className="w-4 h-4" />
+        <span className="max-[620px]:hidden">Admin Qo'shish</span>
       </Button>
+
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-xl shadow-lg max-w-2xl p-6">
           <DialogHeader>
-            <DialogTitle>Tahrirlash</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-center">
+              Yangi Admin Qo‘shish
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(addAdmin)}
-              className="grid gap-4 py-4"
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
+              {/* First Name */}
               <FormField
                 control={form.control}
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">
-                      First Name
-                    </FormLabel>
+                    <FormLabel className="font-semibold">Ism</FormLabel>
                     <FormControl>
-                      <Input placeholder="First name" {...field} />
+                      <Input placeholder="Ism" {...field} />
                     </FormControl>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage className="text-red-500 text-sm" />
                   </FormItem>
                 )}
               />
+
+              {/* Last Name */}
               <FormField
                 control={form.control}
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">Last Name</FormLabel>
+                    <FormLabel className="font-semibold">Familiya</FormLabel>
                     <FormControl>
-                      <Input placeholder="Last name" {...field} />
+                      <Input placeholder="Familiya" {...field} />
                     </FormControl>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage className="text-red-500 text-sm" />
                   </FormItem>
                 )}
               />
+
+              {/* Email */}
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground">Email</FormLabel>
+                  <FormItem className="md:col-span-2">
+                    <FormLabel className="font-semibold">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="you@example.com" {...field} />
+                      <Input placeholder="admin@example.com" {...field} />
                     </FormControl>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage className="text-red-500 text-sm" />
                   </FormItem>
                 )}
               />
+
+              {/* Role */}
               <FormField
                 control={form.control}
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">Role</FormLabel>
+                    <FormLabel className="font-semibold">Role</FormLabel>
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
+                          <SelectValue placeholder="Birini tanlang" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="admin">Admin</SelectItem>
@@ -154,26 +162,36 @@ const Admin_tools = () => {
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage className="text-red-500 text-sm" />
                   </FormItem>
                 )}
               />
+
+              {/* Password */}
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">Password</FormLabel>
+                    <FormLabel className="font-semibold">Parol</FormLabel>
                     <FormControl>
-                      <Input placeholder="*******" {...field} />
+                      <Input type="password" placeholder="*******" {...field} />
                     </FormControl>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage className="text-red-500 text-sm" />
                   </FormItem>
                 )}
               />
-              <DialogFooter>
-                <Button type="submit">Save changes</Button>
-              </DialogFooter>
+
+              <div className="md:col-span-2 flex justify-end mt-4">
+                <DialogFooter>
+                  <Button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Saqlash
+                  </Button>
+                </DialogFooter>
+              </div>
             </form>
           </Form>
         </DialogContent>

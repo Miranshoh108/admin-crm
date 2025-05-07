@@ -1,16 +1,12 @@
+// GroupComponents.tsx
 "use client";
 import { Myaxios } from "@/request/axios";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
 import { GroupType } from "@/types";
+import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
+import Group_add_tool from "./group_add";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { Button } from "../ui/button";
-import { Skeleton } from "../ui/skeleton";
-import Group_add_tool from "./group_add";
 
 const GroupComponents = () => {
   const { data, isLoading, isError } = useQuery({
@@ -28,177 +21,86 @@ const GroupComponents = () => {
     queryFn: () =>
       Myaxios.get("/api/group/get-all-group").then((res) => res.data.data),
   });
-  return (
-    <div>
-      <div>
-        <div className="flex items-center justify-between  gap-2 ">
-          <h2 className="text-xl font-semibold mb-4 max-[525px]:text-lg max-[385px]:text-[16px] max-[355px]:hidden truncate">
-            Guruhlar ro&apos;yxati
-          </h2>
-          <div className="flex items-center gap-4 max-[470px]:gap-2 max-[460px]:  ">
-            <Group_add_tool />
 
-            {/* {(params.search?.length ?? 0) > 0 && (
-              <Button size="sm" className="mb-4">
-                {searchValue !== "" && (
-                  <p className="font-medium truncate max-w-[40px]  ">
-                    {searchValue}
-                  </p>
-                )}
-                <div
-                  onClick={() => {
-                    setSearchValue("");
-                  }}
-                >
-                  <X />
-                </div>
-              </Button>
-            )} */}
-            {/* <Button
-              size="sm"
-              className="mb-4"
-              onClick={() => setSearch(!search)}
-            >
-              <Search size={30} />
-            </Button> */}
-            {/* <div className="mb-4">
-              <Select onValueChange={handleSelectChange} value={selectedStatus}>
-                <SelectTrigger className="w-fit">
-                  <SelectValue placeholder="All" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="ta'tilda">Tatilda</SelectItem>
-                    <SelectItem value="ishdan bo'shatilgan">Nofaol</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div> */}
-          </div>
-        </div>
-        <Table>
-          <TableHeader className="">
-            <TableRow>
-              <TableHead className=" text-center">No</TableHead>
-              <TableHead>Guruh nomi</TableHead>
-              <TableHead>Ustoz</TableHead>
-              <TableHead className=" text-center">
-                O&apos;quvchilar soni
-              </TableHead>
-              <TableHead>Boshlangan vaqti</TableHead>
-              <TableHead>Tugagan vaqti</TableHead>
-              <TableHead className=" text-center">Amallar</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {!isLoading || isError
+  return (
+    <div className="p-5">
+      <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Guruhlar ro&apos;yxati
+        </h2>
+        <Group_add_tool />
+      </div>
+
+      <div className="w-full overflow-x-auto rounded-xl border border-neutral-300">
+        <table className="w-full text-left text-sm font-medium border-separate border-spacing-y-2">
+          <thead>
+            <tr className=" uppercase tracking-wider text-xs">
+              <th className="px-4 py-2 text-center">#</th>
+              <th className="px-4 py-2">Guruh nomi</th>
+              <th className="px-4 py-2">Ustoz</th>
+              <th className="px-4 py-2 text-center">O'quvchilar</th>
+              <th className="px-4 py-2">Boshlanish</th>
+              <th className="px-4 py-2">Tugash</th>
+              <th className="px-4 py-2 text-center">Amal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {!isLoading && !isError
               ? data?.map((group: GroupType, idx: number) => (
-                  <TableRow key={group._id ? group._id : idx}>
-                    <TableCell className="text-center">{idx + 1}</TableCell>
-                    <TableCell className="">{group.name}</TableCell>
-                    <TableCell>
+                  <tr
+                    key={group._id || idx}
+                    className="border border-neutral-300 rounded-lg shadow-sm"
+                  >
+                    <td className="px-4 py-3 text-center">{idx + 1}</td>
+                    <td className="px-4 py-3">{group.name}</td>
+                    <td className="px-4 py-3">
                       {group.teacher.first_name + " " + group.teacher.last_name}
-                    </TableCell>
-                    <TableCell className="capitalize text-center ">
+                    </td>
+                    <td className="px-4 py-3 text-center">
                       {group.students?.length ?? 0}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(group.started_group).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      {group.end_group == null
-                        ? "Davom etmoqda"
-                        : new Date(group.end_group).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-center space-x-2 flex justify-center">
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {new Date(group.started_group).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {group.end_group
+                        ? new Date(group.end_group).toLocaleDateString()
+                        : "Davom etmoqda"}
+                    </td>
+                    <td className="px-4 py-3 text-center">
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild className="">
+                        <DropdownMenuTrigger asChild>
                           <Button variant="ghost" className="h-8 w-8 p-0">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              // setSelectedUser(user);
-                              // form.setValue("email", user.email);
-                              // form.setValue("last_name", user.last_name);
-                              // form.setValue("first_name", user.first_name);
-                              // setOpen(true);
-                            }}
-                          >
-                            Tahrirlash
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => {}}>
-                            O&apos;chirish
-                          </DropdownMenuItem>
-                          {/* {user.status == "ta'tilda" && (
-                            <DropdownMenuItem
-                              onClick={() => tatildanChiqish(user._id)}
-                            >
-                              Tatildan chiqrish
-                            </DropdownMenuItem>
-                          )} */}
-                          {/* <DropdownMenuItem
-                            className={`${user.status == "faol" && "hidden"} ${
-                              user.status == "ta'tilda" && "hidden"
-                            }`}
-                            onClick={() => Hiring(user._id)}
-                          >
-                            Ishga qaytarish
-                          </DropdownMenuItem> */}
-                          <DropdownMenuItem
-                            onClick={() => {
-                              // Info({ _id: user._id });
-                            }}
-                          >
-                            Info
-                          </DropdownMenuItem>
+                          <DropdownMenuItem>Tahrirlash</DropdownMenuItem>
+                          <DropdownMenuItem>O&apos;chirish</DropdownMenuItem>
+                          <DropdownMenuItem>Info</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))
-              : Array(10)
+              : Array(8)
                   .fill(1)
                   .map((_, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>
-                        <Skeleton className="h-5 w-full" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-5 w-full" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-5 w-full" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-5 w-full" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-5 w-full" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-5 w-full" />
-                      </TableCell>
-                      <TableCell className="text-right space-x-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild className="">
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Tahrirlash</DropdownMenuItem>
-                            <DropdownMenuItem>O&apos;hirish</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                    <tr
+                      key={idx}
+                      className="border border-neutral-200 rounded-lg"
+                    >
+                      {Array(7)
+                        .fill(0)
+                        .map((_, i) => (
+                          <td key={i} className="px-4 py-3">
+                            <Skeleton className="h-5 w-full" />
+                          </td>
+                        ))}
+                    </tr>
                   ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
     </div>
   );

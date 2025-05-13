@@ -64,3 +64,82 @@ export interface GroupType {
   updatedAt: string;
   _id: string;
 }
+export interface deleteGroupType {
+  _id: string;
+}
+export interface EditGroupType {
+  _id: string;
+  date: string;
+}
+
+export interface studentType {
+  adress: null | string;
+  createdAt: string;
+  first_name: string;
+  groups: studentGroupType[];
+  is_deleted: boolean;
+  last_name: string;
+  phone: string;
+  status: string;
+  updatedAt: string;
+  leave_history: {
+    days: number | string;
+    end_date: string;
+    reason: string;
+    start_date: string;
+    _id: string;
+  }[];
+  _id: string;
+}
+
+export interface studentGroupType {
+  exitedAt: null | string;
+  group: {
+    createdAt: string;
+    disable: boolean;
+    end_group: string;
+    is_deleted: boolean;
+    name: string;
+    started_group: string;
+    teacher: string;
+    updatedAt: string;
+    _id: string;
+  };
+  joinedAt: string;
+  payments: any;
+  status: string;
+}
+
+export interface studentMutationType {
+  first_name: string;
+  last_name: string;
+  phone: string;
+  groups: { group: string }[];
+}
+
+// courses type
+export interface NameDetailsType {
+  createdAt: string | Date;
+  name: string;
+  updatedAt: string | Date;
+  __v: number;
+  _id: string;
+}
+
+export interface CourseType {
+  createdAt: string | Date;
+  description: string;
+  duration: string;
+  name: NameDetailsType;
+  price: number;
+  is_freeze:boolean
+  updatedAt: string | Date;
+  __v: number;
+  _id: string;
+}
+
+export interface editCourseType {
+  course_id?: string;
+  duration: string;
+  price: number;
+}

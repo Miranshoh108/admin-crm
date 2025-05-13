@@ -57,7 +57,6 @@ import {
 import { toast } from "sonner";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-
 const formSchema = z.object({
   email: z.string().email("To‘g‘ri email kiriting").min(5),
   last_name: z.string().min(5),
@@ -69,12 +68,10 @@ const tatilSchema = z.object({
   end_date: z.string(),
   reason: z.string().min(5),
 });
-
 type Params = {
   status?: string;
   search?: string;
 };
-
 const AdminsTableComponent = () => {
   const { mutate } = useEditMutation();
   const [open, setOpen] = useState(false);
@@ -90,15 +87,12 @@ const AdminsTableComponent = () => {
   const userCookie = Cookies.get("user");
   const user = userCookie ? JSON.parse(userCookie) : null;
   const params: Params = {};
-
   if (selectedStatus !== "all") {
     params.status = selectedStatus;
   }
-
   if (searchValue.trim() !== "") {
     params.search = searchValue.trim();
   }
-
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admins"],
     queryFn: () =>
@@ -107,7 +101,6 @@ const AdminsTableComponent = () => {
         Object.keys(params).length > 0 ? { params } : {}
       ).then((res) => res.data.data),
   });
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -116,7 +109,6 @@ const AdminsTableComponent = () => {
       first_name: "",
     },
   });
-
   const tatilForm = useForm<z.infer<typeof tatilSchema>>({
     resolver: zodResolver(tatilSchema),
     defaultValues: {
@@ -125,7 +117,6 @@ const AdminsTableComponent = () => {
       reason: "",
     },
   });
-
   const editAdmin = (values: z.infer<typeof formSchema>) => {
     mutate(
       {
@@ -138,10 +129,12 @@ const AdminsTableComponent = () => {
           setOpen(false);
           form.reset();
         },
+        onError() {
+          toast.success("Nimadur xato qayta urinib ko'ring!");
+        },
       }
     );
   };
-
   const delteAdmin = (data: User) => {
     Myaxios({
       url: "/api/staff/deleted-admin",
@@ -150,12 +143,13 @@ const AdminsTableComponent = () => {
       headers: {
         Authorization: `Bearer ${Cookies.get("token")}`,
       },
-    }).then(() => {
-      deleteAdminCas(data);
-      refetch();
-    });
+    })
+      .then(() => {
+        deleteAdminCas(data);
+        refetch();
+      })
+      .catch(() => toast.success("Nimadur xato qayta urinib ko'ring!"));
   };
-
   const tatilFn = (values: z.infer<typeof tatilSchema>) => {
     tatilMutate(
       { ...values, _id: tatil.id },
@@ -165,43 +159,40 @@ const AdminsTableComponent = () => {
           tatilForm.reset();
           refetch();
         },
+        onError() {
+          toast.success("Nimadur xato qayta urinib ko'ring!");
+        },
       }
     );
   };
-
   const tatildanChiqish = (id: string) => {
-    Myaxios.post("/api/staff/leave-exit-staff", { _id: id }).then(() =>
-      refetch()
-    );
+    Myaxios.post("/api/staff/leave-exit-staff", { _id: id })
+      .then(() => refetch())
+      .then(() => toast.success("Tatildan chiqarish!"))
+      .catch(() => toast.success("Nimadur xato qayta urinib ko'ring!"));
   };
-
   const handleSelectChange = (value: string) => {
     setSelectedStatus(value);
   };
-
   useEffect(() => {
     refetch();
   }, [selectedStatus, refetch]);
-
   const SearchFn = (e: FormEvent) => {
     e.preventDefault();
     setSearch(false);
     refetch();
   };
-
   useEffect(() => {
     if (searchValue.trim() === "") {
       refetch();
     }
   }, [searchValue, refetch]);
-
   const Hiring = (id: string) => {
     Myaxios.post("/api/staff/return-work-staff", { _id: id }).then(() => {
       toast.success("Ishga qaytarishdingiz");
       refetch();
     });
   };
-
   const Info = ({ _id }: { _id: string }) => {
     Myaxios.get(`/api/staff/info/${_id}`)
       .then((res) => {
@@ -210,167 +201,194 @@ const AdminsTableComponent = () => {
       })
       .catch(() => toast.error("Nimadur xato boshqatdan urinib koring!"));
   };
-
   return (
-    <div className="p-6 space-y-6  rounded-xl shadow-2xl">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold tracking-tight ">
-          👨‍💼 Adminlar Ro'yxati
+    <div className=" relative">
+      <div className="flex items-center justify-between  gap-2 ">
+        <h2 className="text-xl font-semibold mb-4 max-[525px]:text-lg max-[385px]:text-[16px] max-[355px]:hidden truncate">
+          Adminlar ro&apos;yxati
         </h2>
-
-        <div className="flex flex-wrap gap-3 items-center">
-          <form
-            onSubmit={SearchFn}
-            className="flex items-center gap-2 border rounded-full px-3 py-1 shadow-sm"
-          >
-            <Search className="text-gray-500" size={18} />
-            <input
-              type="text"
-              placeholder="Qidiruv..."
-              className="outline-none bg-transparent text-sm"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-            />
-            {searchValue && (
-              <X
-                onClick={() => setSearchValue("")}
-                className="cursor-pointer text-gray-400 hover:text-red-500 transition"
-                size={18}
-              />
-            )}
-          </form>
-
-          <Select onValueChange={handleSelectChange} value={selectedStatus}>
-            <SelectTrigger className="w-[140px] rounded-full shadow-sm">
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="all">Barchasi</SelectItem>
-                <SelectItem value="ta'tilda">Ta'tilda</SelectItem>
-                <SelectItem value="ishdan bo'shatilgan">Nofaol</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-
-          {user?.role === "manager" && <Admin_tools />}
+        <div className="flex items-center gap-4 max-[470px]:gap-2 max-[460px]:  ">
+          {(params.search?.length ?? 0) > 0 && (
+            <Button size="sm" className="mb-4">
+              {searchValue !== "" && (
+                <p className="font-medium truncate max-w-[40px]  ">
+                  {searchValue}
+                </p>
+              )}
+              <div
+                onClick={() => {
+                  setSearchValue("");
+                }}
+              >
+                <X />
+              </div>
+            </Button>
+          )}
+          <Button size="sm" className="mb-4" onClick={() => setSearch(!search)}>
+            <Search size={30} />
+          </Button>
+          {user?.role == "manager" && <Admin_tools />}
+          <div className="mb-4">
+            <Select onValueChange={handleSelectChange} value={selectedStatus}>
+              <SelectTrigger className="w-fit">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="ta'tilda">Tatilda</SelectItem>
+                  {/* <SelectItem value="faol">Faol</SelectItem> */}
+                  <SelectItem value="ishdan bo'shatilgan">Nofaol</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
-
-      <div className="overflow-x-auto rounded-lg shadow border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ism</TableHead>
-              <TableHead>Familiya</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead>Holat</TableHead>
-              <TableHead className="text-center">⚙️ Amallar</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array(8)
-                .fill(0)
-                .map((_, idx) => (
-                  <TableRow key={idx}>
-                    {Array(6)
-                      .fill(0)
-                      .map((_, i) => (
-                        <TableCell key={i}>
-                          <Skeleton className="h-5 w-full" />
-                        </TableCell>
-                      ))}
-                  </TableRow>
-                ))
-            ) : isError ? (
-              <TableRow>
-                <TableCell colSpan={6}>Xatolik yuz berdi...</TableCell>
-              </TableRow>
-            ) : (
-              data?.map((user: User, idx: number) => (
-                <TableRow key={user._id || idx}>
+      <Table>
+        <TableHeader className="">
+          <TableRow>
+            <TableHead>Ism</TableHead>
+            <TableHead>Familiya</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Rol</TableHead>
+            <TableHead>Holat</TableHead>
+            <TableHead className="text-center">Amallar</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {!isLoading || isError
+            ? data?.map((user: User, idx: number) => (
+                <TableRow key={user._id ? user._id : idx}>
                   <TableCell>{user.first_name}</TableCell>
                   <TableCell>{user.last_name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell className="capitalize">{user.role}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        user.status === "faol"
-                          ? "bg-green-100 text-green-700"
-                          : user.status === "ta'tilda"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell>{user.status}</TableCell>
+                  <TableCell className="text-right space-x-2 flex justify-center">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger asChild className="">
                         <Button variant="ghost" className="h-8 w-8 p-0">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="text-sm">
-                        <DropdownMenuItem onClick={() => delteAdmin(user)}>
-                          🗑️ O'chirish
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedUser(user);
+                            form.setValue("email", user.email);
+                            form.setValue("last_name", user.last_name);
+                            form.setValue("first_name", user.first_name);
+                            setOpen(true);
+                          }}
+                          className={`${
+                            user.status == "ishdan bo'shatilgan" && "hidden"
+                          } `}
+                        >
+                          Tahrirlash
                         </DropdownMenuItem>
-                        {user.status === "faol" && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setTatil({ bool: true, id: user._id })
-                            }
-                          >
-                            🏖️ Ta'tilga chiqarish
-                          </DropdownMenuItem>
-                        )}
-                        {user.status === "ta'tilda" && (
+                        <DropdownMenuItem
+                          className={`${
+                            user.status == "ishdan bo'shatilgan" && "hidden"
+                          } `}
+                          onClick={() => delteAdmin(user)}
+                        >
+                          O&apos;chirish
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className={`${
+                            user.status == "ishdan bo'shatilgan" && "hidden"
+                          } ${user.status == "ta'tilda" && "hidden"}`}
+                          onClick={() => setTatil({ bool: true, id: user._id })}
+                        >
+                          Ta&apos;tilga chiqarish
+                        </DropdownMenuItem>
+                        {user.status == "ta'tilda" && (
                           <DropdownMenuItem
                             onClick={() => tatildanChiqish(user._id)}
                           >
-                            🔙 Tatildan chiqish
+                            Tatildan chiqrish
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onClick={() => Info(user)}>
-                          📝 Ma'lumotlar
+                        <DropdownMenuItem
+                          className={`${user.status == "faol" && "hidden"} ${
+                            user.status == "ta'tilda" && "hidden"
+                          }`}
+                          onClick={() => Hiring(user._id)}
+                        >
+                          Ishga qaytarish
                         </DropdownMenuItem>
-                        {user.status === "ishdan bo'shatilgan" && (
-                          <DropdownMenuItem onClick={() => Hiring(user._id)}>
-                            💼 Ishga qaytarish
-                          </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem
+                          onClick={() => {
+                            Info({ _id: user._id });
+                          }}
+                        >
+                          Info
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Edit Dialog */}
+            : Array(10)
+                .fill(1)
+                .map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild className="">
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Tahrirlash</DropdownMenuItem>
+                          <DropdownMenuItem>O&apos;hirish</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+        </TableBody>
+      </Table>
+      {/* edit modal */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adminni tahrirlash</DialogTitle>
+            <DialogTitle>Edit admins</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(editAdmin)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(editAdmin)}
+              className="grid gap-4 py-4"
+            >
               <FormField
                 control={form.control}
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ism</FormLabel>
+                    <FormLabel className="text-foreground">
+                      First Name
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Ism" {...field} />
+                      <Input placeholder="First name" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
@@ -379,11 +397,11 @@ const AdminsTableComponent = () => {
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Familiya</FormLabel>
+                    <FormLabel className="text-foreground">Last Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Familiya" {...field} />
+                      <Input placeholder="Last name" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
@@ -392,46 +410,47 @@ const AdminsTableComponent = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-foreground">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Email" {...field} />
+                      <Input placeholder="you@example.com" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
               <DialogFooter>
-                <Button type="submit">Saqlash</Button>
+                <Button type="submit">Save changes</Button>
               </DialogFooter>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
-
-      {/* Tatil Dialog */}
+      {/* tatil modal */}
       <Dialog
         open={tatil.bool}
-        onOpenChange={() => setTatil({ bool: false, id: "" })}
+        onOpenChange={() => setTatil({ bool: !tatil.bool, id: "" })}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ta'tilga chiqarish</DialogTitle>
+            <DialogTitle>Tatilga chiqarish</DialogTitle>
           </DialogHeader>
           <Form {...tatilForm}>
             <form
               onSubmit={tatilForm.handleSubmit(tatilFn)}
-              className="space-y-4"
+              className="grid gap-4 py-4"
             >
               <FormField
                 control={tatilForm.control}
                 name="start_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Boshlanish sanasi</FormLabel>
+                    <FormLabel className="text-foreground">
+                      Boshlanish sanasi
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Boshlanish sanasi" {...field} />
+                      <Input placeholder="2025-05-1" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
@@ -440,11 +459,13 @@ const AdminsTableComponent = () => {
                 name="end_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tugash sanasi</FormLabel>
+                    <FormLabel className="text-foreground">
+                      Tugash sanasi
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Tugash sanasi" {...field} />
+                      <Input placeholder="2025-05-1" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
@@ -453,23 +474,106 @@ const AdminsTableComponent = () => {
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sabab</FormLabel>
+                    <FormLabel className="text-foreground">Sabab</FormLabel>
                     <FormControl>
-                      <Input placeholder="Sabab" {...field} />
+                      <Input placeholder="Tobi yoq" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
               <DialogFooter>
-                <Button type="submit">Ta'tilga chiqarish</Button>
+                <Button type="submit">Yuborish</Button>
               </DialogFooter>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
+      {/* search */}
+      <Dialog open={search} onOpenChange={setSearch}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Search Admins</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={SearchFn} className="flex flex-col gap-5">
+            <Input
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              type="text"
+            />
+            <Button type="submit">Save changes</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+      {/* Info */}
+      <Dialog open={info} onOpenChange={setInfo}>
+        {userinfo?._id && (
+          <DialogContent className=" w-[600px]">
+            <Card className="w-full rounded-2xl bg-background border-none shadow-md ">
+              <CardHeader className="flex items-center gap-6">
+                <div
+                  className={`relative size-[120px] rounded-full overflow-hidden border-2 border-muted ${
+                    !userinfo.image && "px-10"
+                  }`}
+                >
+                  {userinfo.image ? (
+                    <Image
+                      src={userinfo.image}
+                      alt={`${userinfo.first_name} ${userinfo.last_name}`}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="size-[120px] flex items-center justify-center w-full h-full text-2xl">
+                      {userinfo.first_name[0] + userinfo.last_name[0]}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-semibold">
+                    {userinfo.first_name} {userinfo.last_name}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {userinfo.email}
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent className="mt- space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {userinfo.role && (
+                    <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-800">
+                      Role: {userinfo.role}
+                    </span>
+                  )}
+                  {userinfo.status && (
+                    <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-800">
+                      Status: {userinfo.status}
+                    </span>
+                  )}
+                </div>
+
+                <div className="text-sm text-muted-foreground space-y-1 pt-4">
+                  {userinfo.createdAt && (
+                    <p>
+                      Yartilgan vaqt:
+                      {new Date(userinfo.createdAt).toLocaleDateString()}
+                    </p>
+                  )}
+                  {userinfo.work_date && (
+                    <p>Ish boshlagan vaqt: {userinfo.work_date.slice(0, 10)}</p>
+                  )}
+                  {userinfo.work_end && (
+                    <p>
+                      Ishdan boshagan vaqt: {userinfo.work_end.slice(0, 10)}
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 };
-
 export default AdminsTableComponent;

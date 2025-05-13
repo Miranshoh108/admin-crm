@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAddAdminMutaion } from "@/request/mutation";
+import { toast } from "sonner";
 const formSchema = z.object({
   email: z.string().email("To‘g‘ri email kiriting").min(5),
   last_name: z.string().min(5),
@@ -71,90 +72,85 @@ const Admin_tools = () => {
         setOpen(false);
         form.reset();
       },
+      onError() {
+        toast.error("Email oldin qo'shilgan!");
+      },
     });
   };
   return (
     <div className="flex items-center gap-4">
       <Button
         onClick={() => setOpen(!open)}
-        className="mb-4 flex items-center justify-center gap-2 "
+        className="mb-4 flex items-center justify-center "
         size="sm"
       >
-        <Plus className="w-4 h-4" />
-        <span className="max-[620px]:hidden">Admin Qo'shish</span>
+        <Plus />
+        <p className="max-[620px]:hidden">Admin Qo&apos;shish</p>
       </Button>
-
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-xl shadow-lg max-w-2xl p-6">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center">
-              Yangi Admin Qo‘shish
-            </DialogTitle>
+            <DialogTitle>Tahrirlash</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(addAdmin)}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              className="grid gap-4 py-4"
             >
-              {/* First Name */}
               <FormField
                 control={form.control}
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">Ism</FormLabel>
+                    <FormLabel className="text-foreground">
+                      First Name
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Ism" {...field} />
+                      <Input placeholder="First name" {...field} />
                     </FormControl>
-                    <FormMessage className="text-red-500 text-sm" />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
-
-              {/* Last Name */}
               <FormField
                 control={form.control}
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">Familiya</FormLabel>
+                    <FormLabel className="text-foreground">Last Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Familiya" {...field} />
+                      <Input placeholder="Last name" {...field} />
                     </FormControl>
-                    <FormMessage className="text-red-500 text-sm" />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
-
-              {/* Email */}
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel className="font-semibold">Email</FormLabel>
+                  <FormItem>
+                    <FormLabel className="text-foreground">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="admin@example.com" {...field} />
+                      <Input placeholder="you@example.com" {...field} />
                     </FormControl>
-                    <FormMessage className="text-red-500 text-sm" />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
-
-              {/* Role */}
               <FormField
                 control={form.control}
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">Role</FormLabel>
+                    <FormLabel className="text-foreground">Role</FormLabel>
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Birini tanlang" />
+                          <SelectValue placeholder="Select a role" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="admin">Admin</SelectItem>
@@ -162,36 +158,26 @@ const Admin_tools = () => {
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <FormMessage className="text-red-500 text-sm" />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
-
-              {/* Password */}
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">Parol</FormLabel>
+                    <FormLabel className="text-foreground">Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="*******" {...field} />
+                      <Input placeholder="*******" {...field} />
                     </FormControl>
-                    <FormMessage className="text-red-500 text-sm" />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
-
-              <div className="md:col-span-2 flex justify-end mt-4">
-                <DialogFooter>
-                  <Button
-                    type="submit"
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Saqlash
-                  </Button>
-                </DialogFooter>
-              </div>
+              <DialogFooter>
+                <Button type="submit">Save changes</Button>
+              </DialogFooter>
             </form>
           </Form>
         </DialogContent>

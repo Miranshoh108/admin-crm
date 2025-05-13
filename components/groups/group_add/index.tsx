@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogFooter,
 } from "../../ui/dialog";
-import { Info, Plus, X } from "lucide-react";
+import { Info, Loader, Plus, X } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -23,8 +23,8 @@ import { Input } from "@/components/ui/input";
 
 import { Myaxios } from "@/request/axios";
 import useDebounce from "@/shared/generics/debounse";
-import { useQuery } from "@tanstack/react-query";
-import { TeacherType } from "@/types";
+import { QueryObserverResult, useQuery } from "@tanstack/react-query";
+import { CourseType, TeacherType } from "@/types";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -35,28 +35,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAddGroupMutation } from "@/request/mutation";
-
 const formSchema = z.object({
-  name: z
-    .string()
-    .min(5)
-    .regex(/N\d+$/, { message: "'N' bilan raqam bolishi kerak!" }),
+  course_id: z.string(),
   teacher: z.string(),
   started_group: z.string(),
 });
-
 export interface AddGroupType {
-  name: string;
+  course_id: string;
   teacher: string;
   started_group: string;
 }
-
 interface teacherIdType {
   name: string;
   id: string;
 }
 
-const Group_add_tool = () => {
+type GroupAddToolProps<TData = unknown, TError = unknown> = {
+  tool: () => Promise<QueryObserverResult<TData, TError>>;
+};
+const Group_add_tool = <TData, TError>({
+  tool,
+}: GroupAddToolProps<TData, TError>) => {
   const { mutate } = useAddGroupMutation();
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -64,12 +63,16 @@ const Group_add_tool = () => {
     name: "",
     id: "",
   });
+  const [courseId, setCourseId] = useState<teacherIdType>({
+    name: "",
+    id: "",
+  });
   const [searchValue, setSearchValue] = useState<string>("");
-
+  const [searchValueCourse, setSearchValueCourser] = useState<string>("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      course_id: "",
       teacher: "",
       started_group: "",
     },
@@ -77,76 +80,178 @@ const Group_add_tool = () => {
 
   const addAdmin = (values: z.infer<typeof formSchema>) => {
     mutate(
-      { ...values, teacher: teacherId.id },
+      { ...values, teacher: teacherId.id, course_id: courseId.id },
       {
         onSuccess() {
           setOpen(false);
           form.reset();
-          setTeacherId({ name: "", id: "" });
+          setTeacherId({
+            name: "",
+            id: "",
+          });
           setSearchValue("");
+          tool();
         },
       }
     );
   };
 
   const debounce = useDebounce<string>(searchValue, 500);
+  const debounceCourse = useDebounce<string>(searchValueCourse, 500);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["search-teacher"],
+    queryKey: ["search-teacher", debounce],
     queryFn: () =>
-      Myaxios.get("/api/group/search-teacher", { params: { name: debounce } }),
+      Myaxios.get("/api/group/search-teacher", {
+        params: { name: debounce },
+      }),
     enabled: debounce.trim() !== "",
   });
-
+  const {
+    data: course,
+    isLoading: courseLoading,
+    isError: courseError,
+    refetch: courseRefetch,
+  } = useQuery<CourseType[]>({
+    queryKey: ["search-course", debounceCourse],
+    queryFn: () =>
+      Myaxios.get("/api/group/search-course", {
+        params: { name: debounceCourse },
+      }).then((res) => res.data.data),
+    enabled: debounceCourse.trim() !== "",
+  });
   useEffect(() => {
     if (debounce.trim() !== "") {
       refetch();
     }
   }, [debounce, refetch]);
+  useEffect(() => {
+    if (debounceCourse.trim() !== "") {
+      courseRefetch();
+    }
+  }, [debounceCourse, courseRefetch]);
 
   return (
     <div className="flex items-center gap-4">
       <Button
         onClick={() => setOpen(!open)}
-        className="mb-4 flex items-center justify-center text-xs tracking-wide px-3 py-2 border border-dashed border-[#ffffff22] rounded-md shadow-inner backdrop-blur-sm"
+        className="mb-4 flex items-center justify-center "
         size="sm"
       >
-        <Plus className="w-4 h-4 mr-1" />
-        <p className="max-[620px]:hidden">Guruh Qo'shish</p>
+        <Plus />
+        <p className="max-[620px]:hidden">Guruh Qo&apos;shish</p>
       </Button>
-
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className={`min-w-[600px] border border-[#333] rounded-2xl shadow-md shadow-black/40 text-sm tracking-wide ${
-            data && "min-h-[400px] !pb-20"
-          } ${teacherId.id && "min-h-[200px] !pb-0"} ${
+          className={`min-w-[600px] ${data && "min-h-[400px] !pb-20"} ${
+            teacherId.id && "min-h-[200px] !pb-0"
+          } ${
             !data?.data?.data?.length && " !pb-0"
-          }`}
+          } max-[649px]:!min-w-[10px] `}
         >
           <DialogHeader>
-            <DialogTitle className="text-center font-semibold text-lg">
-              Guruh qo'shish
-            </DialogTitle>
+            <DialogTitle>Tahrirlash</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(addAdmin)}
-              className="grid gap-6 py-4 items-start px-2"
+              className="grid gap-5 py-4 items-start "
             >
               <FormField
                 control={form.control}
-                name="name"
+                name="course_id"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="relative ">
                     <FormLabel className="text-foreground">
                       Guruh nomi
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Frontend dasturlash N1"
-                        {...field}
-                        className="rounded-lg px-4 py-2 border border-[#444] text-sm"
-                      />
+                      {/* <Input placeholder="Frontend dasturlash N1" {...field} /> */}
+                      <div>
+                        {courseId.id ? (
+                          <div className="flex items-center justify-between">
+                            <Input
+                              className="w-[93%]"
+                              readOnly
+                              value={courseId.name}
+                            />
+                            <X
+                              onClick={() => setCourseId({ name: "", id: "" })}
+                            />
+                          </div>
+                        ) : (
+                          <div>
+                            <Input
+                              {...field}
+                              value={searchValueCourse}
+                              placeholder="Davron"
+                              onChange={(e) =>
+                                setSearchValueCourser(e.target.value)
+                              }
+                            />
+                            {course?.length && (
+                              <div
+                                className={`absolute  overflow-y-auto z-50 h-[200px] top-17 rounded-xl p-2 flex flex-col gap-3  border border-accent-foreground/40 !bg-[#161514] w-full  ${
+                                  !course?.length && "!h-[140px] !pb-0"
+                                }  `}
+                              >
+                                <Table className="!bg-[#161514] z-50">
+                                  <TableHeader>
+                                    <TableRow className="sticky top-0 !bg-[#161514] ">
+                                      <TableHead className="w-[30px]">
+                                        No
+                                      </TableHead>
+                                      <TableHead>Nomi</TableHead>
+                                      <TableHead>Narxi</TableHead>
+                                      {/* <TableHead>Haqida</TableHead> */}
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {!courseLoading || !courseError
+                                      ? course?.map(
+                                          (
+                                            teacher: CourseType,
+                                            idx: number
+                                          ) => (
+                                            <TableRow
+                                              key={teacher._id}
+                                              onClick={() =>
+                                                setCourseId({
+                                                  id: teacher._id,
+                                                  name: teacher.name.name,
+                                                })
+                                              }
+                                            >
+                                              <TableCell className="text-center">
+                                                {idx + 1}
+                                              </TableCell>
+                                              <TableCell className="pl-2 font-medium">
+                                                {teacher.name.name}
+                                              </TableCell>
+                                              <TableCell>
+                                                {teacher.price}
+                                              </TableCell>
+                                              {/* <TableCell
+                                                  onClick={() =>
+                                                    router.push(
+                                                      `teachers/${teacher._id}`
+                                                    )
+                                                  }
+                                                  className="pr-3"
+                                                >
+                                                  <Info />
+                                                </TableCell> */}
+                                            </TableRow>
+                                          )
+                                        )
+                                      : "..loading"}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage className="text-red-500" />
                   </FormItem>
@@ -156,14 +261,14 @@ const Group_add_tool = () => {
                 control={form.control}
                 name="teacher"
                 render={({ field }) => (
-                  <FormItem className="relative">
+                  <FormItem className="relative ">
                     <FormLabel className="text-foreground">Ustoz</FormLabel>
                     <FormControl>
                       <div>
                         {teacherId.id ? (
                           <div className="flex items-center justify-between">
                             <Input
-                              className="w-[93%] rounded-lg px-4 py-2 border border-[#444]"
+                              className="w-[93%]"
                               readOnly
                               value={teacherId.name}
                             />
@@ -178,13 +283,17 @@ const Group_add_tool = () => {
                               value={searchValue}
                               placeholder="Davron"
                               onChange={(e) => setSearchValue(e.target.value)}
-                              className="rounded-lg px-4 py-2 border border-[#444] text-sm"
                             />
                             {data?.data?.data?.length && (
-                              <div className="absolute overflow-y-auto h-[200px] top-17 rounded-xl p-2 flex flex-col gap-2 border border-[#444] text-xs text-muted-foreground w-full bg-[#111]">
+                              <div
+                                className={`absolute  overflow-y-auto h-[200px] top-17 rounded-xl p-2 flex flex-col gap-3  border border-accent-foreground/40 bg-[#161514] w-full  ${
+                                  !data?.data?.data?.length &&
+                                  "!h-[140px] !pb-0"
+                                }  `}
+                              >
                                 <Table>
                                   <TableHeader>
-                                    <TableRow className="sticky top-0">
+                                    <TableRow className="sticky top-0 bg-[#161514] ">
                                       <TableHead className="w-[30px]">
                                         No
                                       </TableHead>
@@ -228,7 +337,7 @@ const Group_add_tool = () => {
                                                 }
                                                 className="pr-3"
                                               >
-                                                <Info className="w-4 h-4" />
+                                                <Info />
                                               </TableCell>
                                             </TableRow>
                                           )
@@ -251,26 +360,21 @@ const Group_add_tool = () => {
                 name="started_group"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">
-                      Boshlanish vaqti
-                    </FormLabel>
+                    <FormLabel className="text-foreground">Email</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="2025-05-15"
-                        {...field}
-                        className="rounded-lg px-4 py-2 border border-[#444] text-sm"
-                      />
+                      <Input placeholder="2025-05-15" {...field} />
                     </FormControl>
                     <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
               <DialogFooter>
-                <Button
-                  type="submit"
-                  className="w-full rounded-lg border border-[#555] px-4 py-2 shadow-inner text-sm"
-                >
-                  Saqlash
+                <Button type="submit">
+                  {isLoading ? (
+                    <Loader className="animate-spin " />
+                  ) : (
+                    "Save changes"
+                  )}
                 </Button>
               </DialogFooter>
             </form>

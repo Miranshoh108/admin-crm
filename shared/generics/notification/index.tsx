@@ -9,6 +9,9 @@ type notificationApi =
   | "error_admin"
   | "chiq"
   | "addTeacher"
+  | "editGroup"
+  | "addStundent"
+  | "deleteStundent"
   | "addGroup";
 
 export const notificationApi = () => {
@@ -32,6 +35,12 @@ export const notificationApi = () => {
         return toast.success("Muvoffaqiyatli Ustoz Qo'shdingiz!");
       case "addGroup":
         return toast.success("Muvoffaqiyatli Guruh Qo'shdingiz!");
+      case "addStundent":
+        return toast.success("Muvoffaqiyatli O'quvchi Qo'shdingiz!");
+      case "editGroup":
+        return toast.success("Muvoffaqiyatli Guruhni O'zgartingiz!");
+      case "deleteStundent":
+        return toast.success("Muvoffaqiyatli o'quvchini o'chirdingiz!");
     }
   };
   return notify;

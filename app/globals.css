@@ -135,3 +135,12 @@
 ::-webkit-scrollbar-thumb:hover {
   background-color: #9ca3af;
 }
+
+.hover-manga:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+.badge-manga {
+  background: linear-gradient(45deg, #f472b6, #fb7185);
+  color: white;
+}

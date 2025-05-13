@@ -21,7 +21,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-
 const TableComponent = () => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["ashb"],
@@ -31,52 +30,37 @@ const TableComponent = () => {
   const notify = notificationApi();
 
   return (
-    <div className=" p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold mb-4 ">
+    <div>
+      <h2 className="text-xl font-semibold mb-4">
         Foydalanuvchilar ro&apos;yxati
       </h2>
-
-      {/* Table */}
       <Table>
-        <TableHeader className="">
+        <TableHeader>
           <TableRow>
-            <TableHead className="text-sm">Ism</TableHead>
-            <TableHead className="text-sm">Familiya</TableHead>
-            <TableHead className="text-sm">Email</TableHead>
-            <TableHead className="text-sm">Rol</TableHead>
-            <TableHead className="text-sm">Holat</TableHead>
-            <TableHead className="text-sm text-center">
-              Amallar
-            </TableHead>
+            <TableHead>Ism</TableHead>
+            <TableHead>Familiya</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Rol</TableHead>
+            <TableHead>Holat</TableHead>
+            <TableHead className="text-center">Amallar</TableHead>
           </TableRow>
         </TableHeader>
-
         <TableBody>
-          {!isLoading && !isError
+          {!isLoading || isError
             ? data?.map((user: User) => (
-                <TableRow key={user._id} className="border-b">
-                  <TableCell className="py-4 text-sm ">
-                    {user.first_name}
-                  </TableCell>
-                  <TableCell className="py-4 text-sm ">
-                    {user.last_name}
-                  </TableCell>
-                  <TableCell className="py-4 text-sm ">
-                    {user.email}
-                  </TableCell>
-                  <TableCell className="py-4 text-sm  capitalize">
-                    {user.role}
-                  </TableCell>
-                  <TableCell className="py-4 text-sm ">
-                    {user.status}
-                  </TableCell>
-                  <TableCell className="py-4 text-right flex justify-center space-x-2">
+                <TableRow key={user._id}>
+                  <TableCell>{user.first_name}</TableCell>
+                  <TableCell>{user.last_name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell className="capitalize">{user.role}</TableCell>
+                  <TableCell>{user.status}</TableCell>
+                  <TableCell
+                    onClick={() => notify("error_admin")}
+                    className="text-right space-x-2 flex justify-center "
+                  >
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="h-8 w-8 p-0 hover:bg-gray-100"
-                        >
+                      <DropdownMenuTrigger asChild className="">
+                        <Button variant="ghost" className="h-8 w-8 p-0">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -91,24 +75,34 @@ const TableComponent = () => {
             : Array(10)
                 .fill(1)
                 .map((_, idx) => (
-                  <TableRow key={idx} className="border-b hover:bg-gray-50">
+                  <TableRow key={idx}>
                     <TableCell>
-                      <Skeleton className="h-5 w-full bg-gray-200" />
+                      <Skeleton className="h-5 w-full" />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-5 w-full bg-gray-200" />
+                      <Skeleton className="h-5 w-full" />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-5 w-full bg-gray-200" />
+                      <Skeleton className="h-5 w-full" />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-5 w-full bg-gray-200" />
+                      <Skeleton className="h-5 w-full" />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-5 w-full bg-gray-200" />
+                      <Skeleton className="h-5 w-full" />
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Skeleton className="h-5 w-12 bg-gray-200" />
+                    <TableCell className="text-right space-x-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild className="">
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Tahrirlash</DropdownMenuItem>
+                          <DropdownMenuItem>O&apos;hirish</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

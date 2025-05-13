@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogFooter,
 } from "../../ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Loader, Plus, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -22,14 +22,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAddTeacherMutaion } from "@/request/mutation";
+import { Myaxios } from "@/request/axios";
+import { CourseType } from "@/types";
+import useDebounce from "@/shared/generics/debounse";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 const formSchema = z.object({
   email: z.string().email("To‘g‘ri email kiriting").min(5),
   last_name: z.string().min(5),
@@ -39,21 +43,24 @@ const formSchema = z.object({
     .string()
     .min(5)
     .startsWith("+998", { message: "Iltimos O'zbek nomeridan kiring" }),
-  field: z.string(),
+  course_id: z.string(),
 });
-
 export interface AddTeacherType {
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
   password: string;
-  field: string;
+  course_id: string;
 }
-
 const Teacher_tools = () => {
-  const { mutate } = useAddTeacherMutaion();
+  const { mutate, isPending } = useAddTeacherMutaion();
   const [open, setOpen] = useState(false);
+  const [teacherId, setTeacherId] = useState<{ name: string; id: string }>({
+    name: "",
+    id: "",
+  });
+  const [searchValue, setSearchValue] = useState<string>("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,172 +69,249 @@ const Teacher_tools = () => {
       email: "",
       password: "",
       phone: "",
-      field: "",
+      course_id: "",
     },
   });
-
   const addAdmin = (values: z.infer<typeof formSchema>) => {
-    mutate(values, {
-      onSuccess() {
-        setOpen(false);
-        form.reset();
-      },
-    });
+    mutate(
+      { ...values, course_id: teacherId.id },
+      {
+        onSuccess() {
+          form.reset();
+          setOpen(false);
+        },
+      }
+    );
+    form.reset();
+    setOpen(false);
   };
+  const debounce = useDebounce<string>(searchValue, 500);
 
+  const { data, isLoading, refetch } = useQuery<CourseType[]>({
+    queryKey: ["search-course"],
+    queryFn: () =>
+      Myaxios.get("/api/group/search-course", {
+        params: { name: debounce },
+      }).then((res) => res.data.data),
+    enabled: debounce.trim() !== "",
+  });
+  useEffect(() => {
+    if (debounce.trim() !== "") {
+      refetch();
+    }
+  }, [debounce, refetch, data, searchValue]);
   return (
     <div className="flex items-center gap-4">
       <Button
         onClick={() => setOpen(!open)}
-        className=" px-5 py-2 rounded-full flex items-center gap-2"
+        className="mb-4 flex items-center justify-center "
+        size="sm"
       >
-        <Plus className="size-4" />
-        <span className="max-[620px]:hidden text-sm">Ustoz Qo‘shish</span>
+        <Plus />
+        <p className="max-[620px]:hidden">Ustoz Qo&apos;shish</p>
       </Button>
-
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-xl  shadow-2xl border border-gray-200">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center text-lg font-bold ">
-              🧑‍🏫 Yangi Ustozni Qo‘shish
-            </DialogTitle>
+            <DialogTitle>Ustoz Qo&apos;shish</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(addAdmin)}
-              className="grid gap-5 py-2"
+              className="grid gap-4 py-4"
             >
-              {/* 2 ustunli layout */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="first_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ism</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="rounded-xl "
-                          placeholder="Ism"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="last_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Familiya</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="rounded-xl"
-                          placeholder="Familiya"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
+              <FormField
+                control={form.control}
+                name="first_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground">
+                      First Name
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="First name" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground">Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Last name" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-foreground">Email</FormLabel>
                     <FormControl>
-                      <Input
-                        type="email"
-                        className="rounded-xl border-gray-300 focus:border-purple-500"
-                        placeholder="you@example.com"
-                        {...field}
-                      />
+                      <Input placeholder="you@example.com" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="course_id"
+                render={() => (
+                  <FormItem className="relative ">
+                    <FormLabel className="text-foreground">
+                      Ustoz Sohasi
+                    </FormLabel>
+                    <FormControl>
+                      <div>
+                        {teacherId.id ? (
+                          <div className="flex items-center justify-between">
+                            <Input
+                              className="w-[93%]"
+                              readOnly
+                              value={teacherId.name}
+                            />
+                            <X
+                              onClick={() => {
+                                setTeacherId({ name: "", id: "" });
+                                setSearchValue("");
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div>
+                            <Input
+                              value={searchValue}
+                              placeholder="Frontend"
+                              onChange={(e) => setSearchValue(e.target.value)}
+                            />
+                            {data?.length && (
+                              <div
+                                className={`absolute  overflow-y-auto h-[200px] top-17 rounded-xl p-2 flex flex-col gap-3  border border-accent-foreground/40 bg-[#161514] w-full  ${
+                                  data?.length > 4
+                                    ? "!h-[140px] !pb-0"
+                                    : "h-fit !pb-3"
+                                }  `}
+                              >
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow className="sticky top-0 bg-[#161514] ">
+                                      <TableHead className="w-[30px]">
+                                        No
+                                      </TableHead>
+                                      <TableHead>Nomi</TableHead>
+                                      <TableHead>Narxi</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {!isLoading
+                                      ? data?.map(
+                                          (
+                                            teacher: CourseType,
+                                            idx: number
+                                          ) => (
+                                            <TableRow
+                                              key={teacher._id}
+                                              onClick={() =>
+                                                setTeacherId({
+                                                  id: teacher._id,
+                                                  name: teacher.name.name,
+                                                })
+                                              }
+                                            >
+                                              <TableCell className="text-center">
+                                                {idx + 1}
+                                              </TableCell>
+                                              <TableCell className="pl-2 font-medium">
+                                                {teacher.name.name}
+                                              </TableCell>
+                                              <TableCell>
+                                                {teacher.price}
+                                              </TableCell>
+                                              {/* <TableCell
+                                                onClick={() =>
+                                                  router.push(
+                                                    `teachers/${teacher._id}`
+                                                  )
+                                                }
+                                                className="pr-3"
+                                              >
+                                                <Info />
+                                              </TableCell> */}
+                                            </TableRow>
+                                          )
+                                        )
+                                      : "..loading"}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    {/* <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Ustoz yo'nalishini tanlang" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {selectCourse?.map((value) => (
+                          <SelectItem key={value._id} value={value.name.name}>
+                            {value.name.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select> */}
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefon raqam</FormLabel>
+                    <FormLabel className="text-foreground">Phone</FormLabel>
                     <FormControl>
-                      <Input
-                        className="rounded-xl border-gray-300 focus:border-purple-500"
-                        placeholder="+998901234567"
-                        {...field}
-                      />
+                      <Input placeholder="+998 123 45 67" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="field"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Yo‘nalish</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="rounded-xl border-gray-300 focus:border-purple-500">
-                          <SelectValue placeholder="Yo‘nalishni tanlang" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Frontend dasturlash">
-                          Frontend
-                        </SelectItem>
-                        <SelectItem value="Backend dasturlash">
-                          Backend
-                        </SelectItem>
-                        <SelectItem value="Rus tili">Rus tili</SelectItem>
-                        <SelectItem value="Ingliz tili">Ingliz tili</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Parol</FormLabel>
+                    <FormLabel className="text-foreground">Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        className="rounded-xl border-gray-300 focus:border-purple-500"
-                        placeholder="********"
-                        {...field}
-                      />
+                      <Input placeholder="*******" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-500" />
                   </FormItem>
                 )}
               />
-
-              <DialogFooter className="mt-2">
-                <Button
-                  type="submit"
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-full"
-                >
-                  Saqlash
+              <DialogFooter>
+                <Button type="submit">
+                  {isPending ? (
+                    <Loader className="animate-spin " />
+                  ) : (
+                    "Save changes"
+                  )}
                 </Button>
               </DialogFooter>
             </form>

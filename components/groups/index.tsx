@@ -1,12 +1,16 @@
-// GroupComponents.tsx
 "use client";
 import { Myaxios } from "@/request/axios";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
-import { GroupType } from "@/types";
-import { Button } from "../ui/button";
-import { Skeleton } from "../ui/skeleton";
-import Group_add_tool from "./group_add";
+import React, { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import { deleteGroupType, EditGroupType, GroupType } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,94 +18,225 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
+import Group_add_tool from "./group_add";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogHeader,
+  DialogFooter,
+} from "../ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "../ui/input";
+import { useEditGroupMutation } from "@/request/mutation";
+import { toast } from "sonner";
+const formSchema = z.object({
+  date: z.string(),
+});
 
 const GroupComponents = () => {
-  const { data, isLoading, isError } = useQuery({
+  const [openEdit, setOpenEdit] = useState(false);
+  const [groupDetailsForEdit, setGroupDetailsForEdit] = useState<GroupType>();
+  const { mutate } = useEditGroupMutation();
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["groups"],
     queryFn: () =>
       Myaxios.get("/api/group/get-all-group").then((res) => res.data.data),
   });
+  const deleteGroup = ({ _id }: deleteGroupType) => {
+    Myaxios.delete("/api/group/end-group", { data: { _id } })
+      .then(() => {
+        toast.success("Muvoffaqatli tugatildi!");
+        refetch();
+      })
+      .catch(() => {
+        toast.success("Nimadur xato qayta urinib ko'ring!");
+      });
+  };
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      date: "",
+    },
+  });
+  const editGroup = (values: z.infer<typeof formSchema>) => {
+    const value: EditGroupType = {
+      ...values,
+      _id: groupDetailsForEdit?._id as string,
+    };
+    mutate(value, {
+      onSuccess() {
+        refetch();
+        toast.success("Muvoffaqatli guruh tugatildi!");
+        setOpenEdit(false);
+        form.reset();
+      },
+    });
+  };
 
   return (
-    <div className="p-5">
-      <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Guruhlar ro&apos;yxati
-        </h2>
-        <Group_add_tool />
-      </div>
-
-      <div className="w-full overflow-x-auto rounded-xl border border-neutral-300">
-        <table className="w-full text-left text-sm font-medium border-separate border-spacing-y-2">
-          <thead>
-            <tr className=" uppercase tracking-wider text-xs">
-              <th className="px-4 py-2 text-center">#</th>
-              <th className="px-4 py-2">Guruh nomi</th>
-              <th className="px-4 py-2">Ustoz</th>
-              <th className="px-4 py-2 text-center">O'quvchilar</th>
-              <th className="px-4 py-2">Boshlanish</th>
-              <th className="px-4 py-2">Tugash</th>
-              <th className="px-4 py-2 text-center">Amal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {!isLoading && !isError
+    <div>
+      <div>
+        <div className="flex items-center justify-between  gap-2 ">
+          <h2 className="text-xl font-semibold mb-4 max-[525px]:text-lg max-[385px]:text-[16px] max-[355px]:hidden truncate">
+            Guruhlar ro&apos;yxati
+          </h2>
+          <div className="flex items-center gap-4 max-[470px]:gap-2 max-[460px]:  ">
+            <Group_add_tool tool={refetch} />
+          </div>
+        </div>
+        <Table>
+          <TableHeader className="">
+            <TableRow>
+              <TableHead className=" text-center">No</TableHead>
+              <TableHead>Guruh nomi</TableHead>
+              <TableHead>Ustoz</TableHead>
+              <TableHead className=" text-center">
+                O&apos;quvchilar soni
+              </TableHead>
+              <TableHead>Boshlangan vaqti</TableHead>
+              <TableHead>Tugagan vaqti</TableHead>
+              <TableHead className=" text-center">Amallar</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {!isLoading || isError
               ? data?.map((group: GroupType, idx: number) => (
-                  <tr
-                    key={group._id || idx}
-                    className="border border-neutral-300 rounded-lg shadow-sm"
-                  >
-                    <td className="px-4 py-3 text-center">{idx + 1}</td>
-                    <td className="px-4 py-3">{group.name}</td>
-                    <td className="px-4 py-3">
+                  <TableRow key={group._id ? group._id : idx}>
+                    <TableCell className="text-center">{idx + 1}</TableCell>
+                    <TableCell className="">{group.name}</TableCell>
+                    <TableCell>
                       {group.teacher.first_name + " " + group.teacher.last_name}
-                    </td>
-                    <td className="px-4 py-3 text-center">
+                    </TableCell>
+                    <TableCell className="capitalize text-center ">
                       {group.students?.length ?? 0}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {new Date(group.started_group).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {group.end_group
-                        ? new Date(group.end_group).toLocaleDateString()
-                        : "Davom etmoqda"}
-                    </td>
-                    <td className="px-4 py-3 text-center">
+                    </TableCell>
+                    <TableCell>
+                      {new Date(group.started_group).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {group.end_group == null
+                        ? "Davom etmoqda"
+                        : new Date(group.end_group).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-center space-x-2 flex justify-center">
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                        <DropdownMenuTrigger asChild className="">
                           <Button variant="ghost" className="h-8 w-8 p-0">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Tahrirlash</DropdownMenuItem>
-                          <DropdownMenuItem>O&apos;chirish</DropdownMenuItem>
-                          <DropdownMenuItem>Info</DropdownMenuItem>
+                          {
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setOpenEdit(true);
+                                form.setValue(
+                                  "date",
+                                  group.started_group.slice(0, 10)
+                                );
+                                setGroupDetailsForEdit(group);
+                              }}
+                            >
+                              Tugash vaqtini belgilash
+                            </DropdownMenuItem>
+                          }
+                          {
+                            <DropdownMenuItem
+                              onClick={() => {
+                                deleteGroup({ _id: group._id });
+                              }}
+                            >
+                              Guruhni tugatish
+                            </DropdownMenuItem>
+                          }
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </td>
-                  </tr>
+                    </TableCell>
+           </TableRow>
                 ))
-              : Array(8)
+              : Array(10)
                   .fill(1)
                   .map((_, idx) => (
-                    <tr
-                      key={idx}
-                      className="border border-neutral-200 rounded-lg"
-                    >
-                      {Array(7)
-                        .fill(0)
-                        .map((_, i) => (
-                          <td key={i} className="px-4 py-3">
-                            <Skeleton className="h-5 w-full" />
-                          </td>
-                        ))}
-                    </tr>
+                    <TableRow key={idx}>
+                      <TableCell>
+                        <Skeleton className="h-5 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-full" />
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild className="">
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>Tahrirlash</DropdownMenuItem>
+                            <DropdownMenuItem>O&apos;hirish</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
                   ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Guruhni tahrirlash</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(editGroup)}
+              className="grid gap-4 py-4"
+            >
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground">Sana</FormLabel>
+                    <FormControl>
+                      <Input placeholder="2025-05-05" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="submit">Save changes</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

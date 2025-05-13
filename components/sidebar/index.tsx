@@ -26,7 +26,9 @@ const SideBar = () => {
         <h1 className=" font-bold">Admin CRM</h1>
         <SidebarTrigger className="hidden max-[400px]:flex" />
       </div>
-      <div className={`p-4 `}>
+      <div
+        className={`p-4 `}
+      >
         <h2 className="font-semibold  mb-4">Menu</h2>
         <ul className="space-y-2">
           {sidebarLinks.map((link: SidebarType) => (

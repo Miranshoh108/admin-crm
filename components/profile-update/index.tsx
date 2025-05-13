@@ -26,29 +26,24 @@ import { User } from "@/types";
 import { Myaxios } from "@/request/axios";
 import { Loader } from "lucide-react";
 import { toast } from "sonner";
-
 const formSchema = z.object({
   email: z.string().email("To‘g‘ri email kiriting").min(5),
   last_name: z.string().min(5),
   first_name: z.string().min(5),
 });
-
 const edit_passwordSchema = z.object({
   current_password: z.string().min(8),
   new_password: z.string().min(8),
 });
-
 export interface EditProfileType {
   first_name: string;
   last_name: string;
   email: string;
 }
-
 interface ProfileToolsProps {
   setUserInfo: React.Dispatch<React.SetStateAction<Partial<User>>>;
   userInfo: Partial<User>;
 }
-
 const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
   const { mutate } = useEditProfileMutaion();
   const [open, setOpen] = useState(false);
@@ -63,7 +58,6 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
       email: "",
     },
   });
-
   const edit_form = useForm<z.infer<typeof edit_passwordSchema>>({
     resolver: zodResolver(edit_passwordSchema),
     defaultValues: {
@@ -71,9 +65,7 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
       new_password: "",
     },
   });
-
   const userCookie = Cookies.get("user");
-
   const addAdmin = (values: z.infer<typeof formSchema>) => {
     mutate(values, {
       onSuccess() {
@@ -81,7 +73,6 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
         form.reset();
       },
     });
-
     if (userCookie) {
       const profile = JSON.parse(userCookie);
       Cookies.set("user", JSON.stringify({ ...profile, ...values }));
@@ -93,7 +84,6 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
       });
     }
   };
-
   const editPassword = (values: z.infer<typeof edit_passwordSchema>) => {
     setLoading(true);
     Myaxios.post("/api/auth/edit-password", values).then((res) => {
@@ -103,19 +93,17 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
       setLoading(false);
     });
   };
-
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex items-center gap-4">
       <Button
         onClick={() => {
           setOpenEditPassword(true);
         }}
         size="sm"
-        className="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-md transition duration-300"
       >
-        O'zgartirish
+        Parol<span className="max-[366px]:hidden ">ni</span>
+        <span className="max-[366px]:hidden ">O&apos;zgartirish</span>
       </Button>
-
       <Button
         onClick={() => {
           const userCookie = Cookies.get("user");
@@ -130,35 +118,29 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
           setOpen(true);
         }}
         size="sm"
-        className="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-md transition duration-300"
       >
-        Taxrirlash
+        O&apos;zgartirish
       </Button>
-
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-white rounded-lg shadow-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
-              Edit Profile
-            </DialogTitle>
+            <DialogTitle>Edit Profile</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(addAdmin)}
-              className="grid gap-6 py-6 px-4"
+              className="grid gap-4 py-4"
             >
               <FormField
                 control={form.control}
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-600">First Name</FormLabel>
+                    <FormLabel className="text-foreground">
+                      First Name
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="First name"
-                        {...field}
-                        className="border-gray-300"
-                      />
+                      <Input placeholder="First name" {...field} />
                     </FormControl>
                     <FormMessage className="text-red-500" />
                   </FormItem>
@@ -169,13 +151,9 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-600">Last Name</FormLabel>
+                    <FormLabel className="text-foreground">Last Name</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Last name"
-                        {...field}
-                        className="border-gray-300"
-                      />
+                      <Input placeholder="Last name" {...field} />
                     </FormControl>
                     <FormMessage className="text-red-500" />
                   </FormItem>
@@ -186,13 +164,9 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-600">Email</FormLabel>
+                    <FormLabel className="text-foreground">Email</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="you@example.com"
-                        {...field}
-                        className="border-gray-300"
-                      />
+                      <Input placeholder="you@example.com" {...field} />
                     </FormControl>
                     <FormMessage className="text-red-500" />
                   </FormItem>
@@ -200,36 +174,28 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
               />
 
               <DialogFooter>
-                <Button
-                  type="submit"
-                  className="bg-gray-700 text-white hover:bg-gray-800 px-6 py-2 rounded-md transition duration-300"
-                >
-                  Save changes
-                </Button>
+                <Button type="submit">Save changes</Button>
               </DialogFooter>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
-
       <Dialog open={openEditPassword} onOpenChange={setOpenEditPassword}>
-        <DialogContent className="bg-white rounded-lg shadow-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
-              Edit Password
-            </DialogTitle>
+            <DialogTitle>Edit Password</DialogTitle>
           </DialogHeader>
           <Form {...edit_form}>
             <form
               onSubmit={edit_form.handleSubmit(editPassword)}
-              className="grid gap-6 py-6 px-4"
+              className="grid gap-4 py-4"
             >
               <FormField
                 control={edit_form.control}
                 name="current_password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-600">
+                    <FormLabel className="text-foreground">
                       Current Password
                     </FormLabel>
                     <FormControl>
@@ -237,7 +203,6 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
                         type="password"
                         placeholder="Current password"
                         {...field}
-                        className="border-gray-300"
                       />
                     </FormControl>
 
@@ -250,7 +215,7 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
                 name="new_password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-600">
+                    <FormLabel className="text-foreground">
                       New Password
                     </FormLabel>
                     <FormControl>
@@ -258,7 +223,6 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
                         type="password"
                         placeholder="New password"
                         {...field}
-                        className="border-gray-300"
                       />
                     </FormControl>
                     <FormMessage className="text-red-500" />
@@ -268,16 +232,11 @@ const Profile_tools = ({ setUserInfo, userInfo }: ProfileToolsProps) => {
 
               <DialogFooter>
                 {loading ? (
-                  <Button className="bg-gray-500 text-white px-6 py-2 rounded-md">
-                    <Loader className="animate-spin text-white" />
+                  <Button>
+                    <Loader className="animate-spin" />
                   </Button>
                 ) : (
-                  <Button
-                    type="submit"
-                    className="bg-gray-700 text-white hover:bg-gray-800 px-6 py-2 rounded-md transition duration-300"
-                  >
-                    Save changes
-                  </Button>
+                  <Button type="submit">Save changes</Button>
                 )}
               </DialogFooter>
             </form>

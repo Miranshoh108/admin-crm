@@ -1,4 +1,6 @@
 "use client";
+import { Myaxios } from "@/request/axios";
+import { useQuery } from "@tanstack/react-query";
 import React, { FormEvent, useEffect, useState } from "react";
 import {
   Table,
@@ -9,20 +11,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Search, X } from "lucide-react";
-import { User } from "@/types";
-import { useQuery } from "@tanstack/react-query";
-import { Myaxios } from "@/request/axios";
-import { Skeleton } from "../ui/skeleton";
-import Cookies from "js-cookie";
-import { Dialog, DialogContent, DialogTitle, DialogHeader } from "../ui/dialog";
-import { Input } from "../ui/input";
+import { studentType } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { MoreHorizontal, Search, X } from "lucide-react";
+import { Skeleton } from "../ui/skeleton";
+import { Params } from "next/dist/server/request/params";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Input } from "../ui/input";
 import {
   Select,
   SelectContent,
@@ -31,20 +31,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import Teacher_tools from "./teacher-add";
+import Student_tools from "./student-add";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-type Params = {
-  status?: string;
-  search?: string;
-};
-const TeachersTableComponent = () => {
-  // const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState(false);
+import Student_addGroup from "./addStudent-group";
+const StudentsComponents = () => {
   const [searchValue, setSearchValue] = useState<string>("");
-  //   const [tatil, setTatil] = useState({ bool: false, id: "" });
-  const router = useRouter();
+  const [tatildaValue, setTatildaValue] = useState<{
+    leave_days: string;
+    reason: string;
+  }>({
+    leave_days: "",
+    reason: "",
+  });
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [search, setSearch] = useState(false);
+  const [addgroup, setAddgroup] = useState(false);
+  const [tatilBoll, setTatilBool] = useState(false);
+  const [tatil, setTatil] = useState({ id: "" });
+  const [student, setStudent] = useState<studentType>();
+  const router = useRouter();
+  // const [searchValue, setSearchValue] = useState<string>("");
   const params: Params = {};
   if (selectedStatus !== "all") {
     params.status = selectedStatus;
@@ -53,60 +60,19 @@ const TeachersTableComponent = () => {
     params.search = searchValue.trim();
   }
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["teacher"],
-    queryFn: async () => {
-      const res = await Myaxios.get(
-        "/api/teacher/get-all-teachers",
+    queryKey: ["students"],
+    queryFn: () =>
+      Myaxios.get(
+        "/api/student/get-all-students",
         Object.keys(params).length > 0 ? { params } : {}
-      );
-      const teachers = res.data.data;
-      return Array.isArray(teachers) ? teachers : [];
-    },
-    // Myaxios.get(
-    //   "/api/teacher/get-all-teachers",
-    //   Object.keys(params).length > 0 ? { params } : {}
-    // ).then((res) => res.data.data),
+      ),
   });
-  //   const form = useForm<z.infer<typeof formSchema>>({
-  //     resolver: zodResolver(formSchema),
-  //     defaultValues: {
-  //       email: "",
-  //       last_name: "",
-  //       first_name: "",
-  //     },
-  //   });
-  //   const tatilForm = useForm<z.infer<typeof tatilSchema>>({
-  //     resolver: zodResolver(tatilSchema),
-  //     defaultValues: {
-  //       start_date: "",
-  //       end_date: "",
-  //       reason: "",
-  //     },
-  //   });
-  const userCookie = Cookies.get("user");
-  const user = userCookie ? JSON.parse(userCookie) : null;
-  //   const editAdmin = () => {};
-  const delteAdmin = (id: string) => {
-    Myaxios.delete("/api/teacher/fire-teacher", {
-      data: { _id: id },
-    }).then(() => {
-      toast.success("Siz Ustozni ishdan boshatdingiz!");
-      refetch();
-    });
-  };
-  const hiring = (id: string) => {
-    Myaxios.post("api/teacher/return-teacher", { _id: id }).then(() => {
-      refetch();
-    });
-  };
-  //   const tatilFn = () => {};
   const handleSelectChange = (value: string) => {
     setSelectedStatus(value);
   };
   useEffect(() => {
     refetch();
   }, [selectedStatus, refetch]);
-
   const SearchFn = (e: FormEvent) => {
     e.preventDefault();
     setSearch(false);
@@ -117,11 +83,46 @@ const TeachersTableComponent = () => {
       refetch();
     }
   }, [searchValue, refetch]);
+  const delteStudent = (_id: string) => {
+    Myaxios.delete("/api/student/delete-student", { data: { _id: _id } }).then(
+      (res) => {
+        toast.success(res.data.message);
+        refetch();
+      }
+    );
+  };
+  const returnStudent = (_id: string) => {
+    Myaxios.post("/api/student/return-student", { _id: _id }).then((res) => {
+      toast.success(res.data.message);
+      refetch();
+    });
+  };
+  const leaveStudent = (e: FormEvent) => {
+    e.preventDefault();
+    Myaxios.post("/api/student/leave-student", {
+      ...tatildaValue,
+      student_id: tatil.id,
+    }).then((res) => {
+      toast.success(res.data.message);
+      refetch();
+      setTatildaValue({ leave_days: "", reason: "" });
+      setTatilBool(false);
+      setTatil({ id: "" });
+    });
+  };
+  const returnLeaveStudent = (_id: string) => {
+    Myaxios.post("/api/student/return-leave-student", { _id: _id }).then(
+      (res) => {
+        toast.success(res.data.message);
+        refetch();
+      }
+    );
+  };
   return (
-    <div className=" relative">
+    <div>
       <div className="flex items-center justify-between  gap-2 ">
         <h2 className="text-xl font-semibold mb-4 max-[525px]:text-lg max-[385px]:text-[16px] max-[355px]:hidden truncate">
-          Ustozlar ro&apos;yxati
+          Studentlar ro&apos;yxati
         </h2>
         <div className="flex items-center gap-4 max-[470px]:gap-2 max-[460px]:  ">
           {(params.search?.length ?? 0) > 0 && (
@@ -143,7 +144,7 @@ const TeachersTableComponent = () => {
           <Button size="sm" className="mb-4" onClick={() => setSearch(!search)}>
             <Search size={30} />
           </Button>
-          {(user?.role == "manager" || "admin") && <Teacher_tools />}
+          <Student_tools />
           <div className="mb-4">
             <Select onValueChange={handleSelectChange} value={selectedStatus}>
               <SelectTrigger className="w-fit">
@@ -152,9 +153,9 @@ const TeachersTableComponent = () => {
               <SelectContent>
                 <SelectGroup>
                   <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="ta'tilda">Tatilda</SelectItem>
                   <SelectItem value="faol">Faol</SelectItem>
-                  <SelectItem value="ishdan bo'shatilgan">Nofaol</SelectItem>
+                  <SelectItem value="ta'tilda">Tatilda</SelectItem>
+                  <SelectItem value="yakunladi">Yakunladi</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -162,25 +163,32 @@ const TeachersTableComponent = () => {
         </div>
       </div>
       <Table>
-        <TableHeader>
+        <TableHeader className="">
           <TableRow>
             <TableHead>Ism</TableHead>
             <TableHead>Familiya</TableHead>
-            <TableHead>Email</TableHead>
+            <TableHead>Telefon raqam</TableHead>
+            <TableHead>Guruhlar soni</TableHead>
             <TableHead>Holat</TableHead>
             <TableHead className="text-center">Amallar</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {!isLoading && !isError && data
-            ? data?.map((user: User, idx: number) => (
-                <TableRow key={user?._id ? user._id : idx}>
-                  <TableCell>{user.first_name}</TableCell>
-                  <TableCell>{user.last_name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  {/* <TableCell className="capitalize">{user.role}</TableCell> */}
-                  <TableCell>{user.status}</TableCell>
-                  <TableCell className="text-right space-x-2 flex justify-center">
+            ? data?.data.data?.map((student: studentType, idx: number) => (
+                <TableRow key={student._id ? student._id : idx}>
+                  <TableCell>{student.first_name}</TableCell>
+                  <TableCell>{student.last_name}</TableCell>
+                  <TableCell>
+                    {student.phone.startsWith("+")
+                      ? student.phone
+                      : `+${student.phone}`}
+                  </TableCell>
+                  <TableCell className="capitalize pl-13">
+                    {student.groups.length}
+                  </TableCell>
+                  <TableCell>{student.status}</TableCell>
+                  <TableCell className=" space-x-2 flex justify-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild className="">
                         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -188,44 +196,53 @@ const TeachersTableComponent = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {/* <DropdownMenuItem
-                        // onClick={() => {
-                        //   setSelectedUser(user);
-                        // //   form.setValue("email", user.email);
-                        // //   form.setValue("last_name", user.last_name);
-                        // //   form.setValue("first_name", user.first_name);
-                        //   setOpen(true);
-                        // }}
+                        <DropdownMenuItem
+                          onClick={() => delteStudent(student._id)}
                         >
-                          Tahrirlash
-                        </DropdownMenuItem> */}
-                        <DropdownMenuItem onClick={() => delteAdmin(user._id)}>
                           O&apos;chirish
                         </DropdownMenuItem>
-                        {/* <DropdownMenuItem
-                          className={`${
-                            user.status == "ishdan bo'shatilgan" && "hidden"
-                          } ${user.status == "ta'tilda" && "hidden"}`}
-                          // onClick={() =>
-                          //   setTatil({ bool: true, id: user._id })
-                          // }
-                        >
-                          Ta&apos;tilga chiqarish
-                        </DropdownMenuItem> */}
-                        {user.status == "ta'tilda" && (
-                          <DropdownMenuItem>Tatildan chiqrish</DropdownMenuItem>
-                        )}
                         <DropdownMenuItem
-                          className={`${user.status == "faol" && "hidden"} ${
-                            user.status == "ta'tilda" && "hidden"
+                          className={`${
+                            student.status !== "yakunladi" && "hidden"
                           }`}
-                          onClick={() => hiring(user._id)}
+                          onClick={() => returnStudent(student._id)}
                         >
-                          Ishga qaytarish
+                          Orqaga qaytarish
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          className={`${
+                            student.status !== "faol" && "hidden"
+                          } `}
                           onClick={() => {
-                            router.push(`/teachers/${user._id}`);
+                            setTatil({ id: student._id });
+                            setTatilBool(true);
+                          }}
+                        >
+                          Ta&apos;tilga chiqarish
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className={`${
+                            student.status == "yakunladi" && "hidden"
+                          } ${student.status == "faol" && "hidden"}`}
+                          onClick={() => returnLeaveStudent(student._id)}
+                        >
+                          Ta&apos;tildan qaytarish
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className={`${
+                            student.status == "yakunladi" && "hidden"
+                          } ${student.status == "ta'tilda" && "hidden"} `}
+                          onClick={() => {
+                            setAddgroup(true);
+                            setStudent(student);
+                          }}
+                        >
+                          Yangi guruhga qo&apos;shish
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => {
+                            router.push(`students/${student._id}`);
                           }}
                         >
                           Info
@@ -271,7 +288,11 @@ const TeachersTableComponent = () => {
                 ))}
         </TableBody>
       </Table>
-      {/* search */}
+      <Student_addGroup
+        student={student!}
+        setAddgroup={setAddgroup}
+        addgroup={addgroup}
+      />
       <Dialog open={search} onOpenChange={setSearch}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -287,7 +308,34 @@ const TeachersTableComponent = () => {
           </form>
         </DialogContent>
       </Dialog>
+      <Dialog open={tatilBoll} onOpenChange={setTatilBool}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Tatilga chiqarish</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={leaveStudent} className="flex flex-col gap-5">
+            <Input
+              value={tatildaValue.leave_days}
+              onChange={(e) =>
+                setTatildaValue({ ...tatildaValue, leave_days: e.target.value })
+              }
+              type="text"
+              placeholder="10"
+            />
+            <Input
+              value={tatildaValue.reason}
+              onChange={(e) =>
+                setTatildaValue({ ...tatildaValue, reason: e.target.value })
+              }
+              type="text"
+              placeholder="Tobi yoq"
+            />
+            <Button type="submit">Save changes</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
-export default TeachersTableComponent;
+
+export default StudentsComponents;

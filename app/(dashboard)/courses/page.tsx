@@ -1,4 +1,4 @@
-import TeachersTableComponent from "@/components/teachers-table";
+import CoursesComponents from "@/components/courses";
 import { Myaxios } from "@/request/axios";
 import {
   dehydrate,
@@ -7,22 +7,21 @@ import {
 } from "@tanstack/react-query";
 import React from "react";
 
-const Teachers = async () => {
+const Courses = async () => {
   const queryClient = new QueryClient();
   await queryClient.prefetchQuery({
-    queryKey: ["teacher"],
-    queryFn: () =>
-      Myaxios.get("/api/teacher/get-all-teachers").then((res) =>res.data.data
-      ),
+    queryKey: ["courses"],
+    queryFn: async () =>
+      await Myaxios.get("/api/course/get-courses").then((res) => res.data.data),
   });
   const dehydratedState = dehydrate(queryClient);
   return (
     <div className="p-4  rounded-xl shadow-sm py-5">
       <HydrationBoundary state={dehydratedState}>
-        <TeachersTableComponent />
+        <CoursesComponents />
       </HydrationBoundary>
     </div>
   );
 };
 
-export default Teachers;
+export default Courses;

@@ -1,5 +1,5 @@
 import { AiOutlineHome, AiOutlineUsergroupAdd } from "react-icons/ai";
-import { FaUserGraduate, FaChalkboardTeacher } from "react-icons/fa";
+import { FaUserGraduate, FaChalkboardTeacher, FaMoneyBill } from "react-icons/fa";
 import { BsPeople } from "react-icons/bs";
 import { CircleUser, LogOut, Settings } from "lucide-react";
 import { IoBookOutline } from "react-icons/io5";
@@ -12,6 +12,7 @@ export const sidebarLinks = [
   { name: "Studentlar", icon: <FaUserGraduate />, path: "/students" },
   { name: "Guruhlar", icon: <BsPeople />, path: "/groups" },
   { name: "Kurslar", icon: <IoBookOutline />, path: "/courses" },
+  { name: "Payment", icon: <FaMoneyBill />, path: "/payment" },
 ];
 export const other_links = [
   { name: "Sozlamalar", icon: <Settings />, path: "/settings" },

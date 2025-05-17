@@ -32,7 +32,7 @@ const TableComponent = () => {
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">
-        Foydalanuvchilar ro&apos;yxati
+        Menagerlar ro&apos;yxati
       </h2>
       <Table>
         <TableHeader>

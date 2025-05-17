@@ -40,7 +40,6 @@ const LoginComponents = () => {
   useEffect(() => {
     if (isSuccess) {
       router.push("/");
-      console.log(isSuccess);
     }
   }, [isPending, isSuccess, router]);
 
@@ -66,7 +65,7 @@ const LoginComponents = () => {
                   <FormLabel className="text-foreground">Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="you@example.com"
+                      placeholder="crm@mail.ru"
                       {...field}
                       className="bg-white/40 text-foreground  placeholder-white focus-visible:ring-foreground border border-white/30"
                     />

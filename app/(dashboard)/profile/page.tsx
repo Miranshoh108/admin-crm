@@ -109,18 +109,12 @@ const Profile = () => {
             </div>
           </div>
         </div>
-        <div>
-          <span className="bg-red-600 text-white px-3 py-1 rounded-sm text-sm">
-            {userInfo?.role}
-          </span>
-        </div>
+        
       </div>
 
       <div className="rounded-xl shadow p-6">
         <h2 className="text-lg font-semibold mb-2">Profil ma&apos;lumotlari</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Shaxsiy ma&apos;lumotlaringizni yangilashingiz mumkin.
-        </p>
+       
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium">Ism</label>

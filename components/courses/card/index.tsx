@@ -126,9 +126,9 @@ export const CourseCard = ({
             <Button
               size="sm"
               onClick={() => unfreeze(course._id)}
-              className="flex items-center gap-1 bg-red-500 text-white"
+              className="flex items-center gap-1 bg-yellow-500 text-white"
             >
-              Eritish
+              Davom ettirish
             </Button>
           ) : (
             <Button
